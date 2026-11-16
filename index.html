@@ -32,6 +32,26 @@
 </nav>
 
 <main class="wrap">
+  <div class="filtros card" id="filtros">
+    <div class="filtros-top">
+      <div>
+        <div class="filtros-title">Filtrar por período</div>
+        <div class="filtros-resumo" id="resumoFiltro">Carregando dados…</div>
+      </div>
+      <button class="btn-limpar" id="limparFiltro" type="button">Limpar filtro</button>
+    </div>
+    <div class="filtro-linha">
+      <span class="filtro-rotulo">Ano</span>
+      <div class="chips" id="chipsAnos"></div>
+    </div>
+    <div class="filtro-linha">
+      <span class="filtro-rotulo">Período avaliatório</span>
+      <div class="chips" id="chipsPas"></div>
+    </div>
+  </div>
+
+  <div id="vazioGeral" class="card vazio" hidden></div>
+
   <!-- ============================================================ VISÃO GERAL -->
   <section class="panel" id="p-visao" role="tabpanel" aria-labelledby="t-visao">
     <div class="kpis" id="kpis"></div>
@@ -108,6 +128,7 @@
         <h2>Forma de pagamento</h2>
         <p class="cap">Como os pagamentos saíram</p>
         <div id="barsForma"></div>
+        <div id="notaForma"></div>
       </div>
       <div class="card">
         <h2>Como ler esta aba</h2>

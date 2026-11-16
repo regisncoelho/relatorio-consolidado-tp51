@@ -1,6 +1,9 @@
 /* ============================================================
    Relatório Financeiro Agregado — TP 51/2021
    Dados 100% agregados (dados/dados.json). Sem dados pessoais.
+
+   Filtros: período completo, por ano (2022–2026) e por período
+   avaliatório trimestral (1º P.A = jan–mar/2022).
    ============================================================ */
 "use strict";
 
@@ -24,32 +27,39 @@ const CORES_SEG = {
   "Executora — administração (área meio)":"#e0a33e",
   "Não classificado (revisão)":"#de6a3a"
 };
+const EXCLUIR_ATIV = new Set(["Pessoal (folha e encargos)","Executora — administração (área meio)",
+                              "Área Meio (administração)","Não informada","Demais atividades"]);
+
+let DATA = null;
+let SLICE = null;
+let FILTRO = "todos";
+let ABA = "visao";
+let FULL_LIST = [];
+let FULL_IDX = new Map();
+const FULL = new Map();
 
 const brl  = v => fmt0.format(v);
 const brl2 = v => fmt2.format(v);
 const pct  = v => (v*100).toFixed(1).replace(".",",") + "%";
 const compact = v => Math.abs(v) >= 1e6 ? (v/1e6).toFixed(1).replace(".",",") + " mi"
                     : Math.abs(v) >= 1e3 ? (v/1e3).toFixed(0) + " mil" : String(Math.round(v));
-const esc  = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const esc  = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const mesLabel = k => MESES[+k.slice(5,7)-1] + "/" + k.slice(0,4);
 const soma = arr => arr.reduce((s,x) => s + (x.v ?? x), 0);
-
-let DATA = null;
-const porMes = new Map();
 
 /* ---------------------------------------------------------------- tooltip */
 const tip = document.getElementById("tip");
 function bindTips(root = document){
   root.querySelectorAll("[data-tip]").forEach(el => {
-    el.addEventListener("mouseenter", e => {
+    el.onmouseenter = () => {
       tip.textContent = el.getAttribute("data-tip");
       tip.classList.add("show");
-    });
-    el.addEventListener("mousemove", e => {
+    };
+    el.onmousemove = e => {
       tip.style.left = e.clientX + "px";
       tip.style.top  = e.clientY + "px";
-    });
-    el.addEventListener("mouseleave", () => tip.classList.remove("show"));
+    };
+    el.onmouseleave = () => tip.classList.remove("show");
   });
 }
 
@@ -61,11 +71,9 @@ function barras(items, total, opts = {}){
   return '<div class="bars">' + items.map((p,i) => {
     const w = Math.max(0, Math.abs(p.v)) / max * 100;
     const share = total ? " · " + pct(p.v/total) : "";
-    const n = p.n_lanc ? `${fmtNum.format(p.n_lanc)} lanç.` : "agrupado";
-    const clicavel = opts.onClick ? " clickable" : "";
-    const attrs = opts.onClick ? ` data-idx="${i}"` : "";
+    const n = p.n_lanc ? `${fmtNum.format(p.n_lanc)} lanç.` : (opts.rotuloN || "agrupado");
     const c = p.cor || cor(i, p);
-    return `<div class="bar-row${clicavel}"${attrs} data-tip="${esc(p.n)}\n${brl2(p.v)}${share ? "  (" + pct(p.v/total) + ")" : ""}\n${n}">
+    return `<div class="bar-row" data-tip="${esc(p.n)}\n${brl2(p.v)}${share ? "  (" + pct(p.v/total) + ")" : ""}\n${n}">
       <span class="name">${esc(p.n)}</span>
       <span class="track"><span class="fill" style="width:${w.toFixed(1)}%;background:${c}"></span></span>
       <span class="num">${brl(p.v)}${share}</span>
@@ -112,7 +120,7 @@ function linhaMes(meses){
     s += `<line x1="${P.l}" x2="${W-P.r}" y1="${y(t)}" y2="${y(t)}" style="stroke:var(--line-2)"/>`;
     s += `<text x="${P.l-8}" y="${y(t)+4}" text-anchor="end" font-size="11" style="fill:var(--muted)">${i===0?"0":compact(t)}</text>`;
   });
-  const step = Math.ceil(meses.length / 9);
+  const step = Math.max(1, Math.ceil(meses.length / 9));
   const mm = meses.map((m,i) => i < 2 ? null : (meses[i-2].desp + meses[i-1].desp + m.desp) / 3);
   meses.forEach((m,i) => {
     const x = P.l + i*bw + bw*0.16, w = bw*0.68;
@@ -129,8 +137,22 @@ function linhaMes(meses){
   return s;
 }
 
+/* ---------------------------------------------------------------- barras por ano (acumulado) */
+function barrasAnos(ytd, destaque){
+  const max = Math.max(...ytd.map(y => y.v), 1);
+  return '<div class="bars">' + ytd.map(y => {
+    const w = Math.max(0, y.v) / max * 100;
+    const bg = y.ano === destaque ? "var(--ambar)" : "var(--azul)";
+    return `<div class="bar-row" data-tip="${y.ano}\n${brl2(y.v)}\nacumulado jan–set">
+      <span class="name">${y.ano}${y.ano === destaque ? " ◀" : ""}</span>
+      <span class="track"><span class="fill" style="width:${w.toFixed(1)}%;background:${bg}"></span></span>
+      <span class="num">${brl(y.v)}</span>
+    </div>`;
+  }).join("") + "</div>";
+}
+
 /* ---------------------------------------------------------------- heatmap */
-function heat(meses){
+function heat(meses, sel){
   const anos = [...new Set(meses.map(m => m.k.slice(0,4)))].sort();
   const mp = new Map(meses.map(m => [m.k, m]));
   const max = Math.max(...meses.map(m => m.desp), 1);
@@ -145,7 +167,8 @@ function heat(meses){
       const t = Math.pow(m.desp / max, .75);
       const bg = `rgba(31,56,100,${(0.10 + t*0.85).toFixed(2)})`;
       const fg = t > .55 ? "#fff" : "#0b1220";
-      s += `<div class="c" style="background:${bg};color:${fg}" data-k="${key}"
+      const isSel = sel && (sel.keys ? sel.keys.has(key) : sel.ano === +a);
+      s += `<div class="c${isSel ? " is-sel" : ""}" style="background:${bg};color:${fg}" data-k="${key}"
         data-tip="${mesLabel(key)}\nDespesas: ${brl2(m.desp)}\n${fmtNum.format(m.n)} lançamentos">${compact(m.desp)}</div>`;
     }
   });
@@ -153,39 +176,39 @@ function heat(meses){
 }
 
 /* ---------------------------------------------------------------- tabela de variação */
-function tabelaVariacao(meses){
-  const idx = new Map(meses.map((m,i) => [m.k, i]));
+function clsVar(x){ return x === null ? "" : x >= 0 ? "pos" : "neg"; }
+
+function tabelaVariacao(rows){
   const head = `<tr><th>Mês</th><th>Despesas</th><th>Receitas</th><th>Saldo</th><th>Δ mês anterior</th><th>Δ %</th><th>Δ mesmo mês ano anterior</th></tr>`;
-  const rows = meses.map(m => {
-    const i = idx.get(m.k);
-    const prev = i > 0 ? meses[i-1] : null;
+  const trs = rows.map(m => {
+    const i = FULL_IDX.get(m.k);
+    const prev = i > 0 ? FULL_LIST[i-1] : null;
     const yoyKey = `${+m.k.slice(0,4) - 1}${m.k.slice(4)}`;
-    const yoy = idx.has(yoyKey) ? meses[idx.get(yoyKey)] : null;
+    const yoy = FULL_IDX.has(yoyKey) ? FULL_LIST[FULL_IDX.get(yoyKey)] : null;
     const dMoM = prev ? m.desp - prev.desp : null;
     const pMoM = prev && prev.desp ? (m.desp - prev.desp) / prev.desp : null;
     const dYoY = yoy ? m.desp - yoy.desp : null;
-    const cls = x => x === null ? "" : x >= 0 ? "pos" : "neg";
     return `<tr data-k="${m.k}" style="cursor:pointer">
       <td>${m.label}</td>
       <td class="num">${brl2(m.desp)}</td>
       <td class="num">${brl2(m.rec)}</td>
       <td class="num ${m.saldo >= 0 ? "pos" : "neg"}">${brl2(m.saldo)}</td>
-      <td class="num ${cls(dMoM)}">${dMoM === null ? "—" : brl2(dMoM)}</td>
-      <td class="${cls(pMoM)}">${pMoM === null ? "—" : (pMoM*100).toFixed(1).replace(".",",") + "%"}</td>
-      <td class="num ${cls(dYoY)}">${dYoY === null ? "—" : brl2(dYoY)}</td>
+      <td class="num ${clsVar(dMoM)}">${dMoM === null ? "—" : brl2(dMoM)}</td>
+      <td class="${clsVar(pMoM)}">${pMoM === null ? "—" : (pMoM*100).toFixed(1).replace(".",",") + "%"}</td>
+      <td class="num ${clsVar(dYoY)}">${dYoY === null ? "—" : brl2(dYoY)}</td>
     </tr>`;
   }).join("");
-  return {head, rows};
+  return {head, rows: trs};
 }
 
 /* ---------------------------------------------------------------- detalhe do mês */
 function mostraMes(k){
-  const m = porMes.get(k);
+  const m = FULL.get(k);
   if (!m) return;
-  const idx = DATA.meses.findIndex(x => x.k === k);
-  const prev = idx > 0 ? DATA.meses[idx-1] : null;
+  const i = FULL_IDX.get(k);
+  const prev = i > 0 ? FULL_LIST[i-1] : null;
   const yoyKey = `${+k.slice(0,4) - 1}${k.slice(4)}`;
-  const yoy = porMes.get(yoyKey);
+  const yoy = FULL_IDX.has(yoyKey) ? FULL_LIST[FULL_IDX.get(yoyKey)] : null;
   const pMoM = prev && prev.desp ? (m.desp - prev.desp) / prev.desp : null;
   const pYoY = yoy && yoy.desp ? (m.desp - yoy.desp) / yoy.desp : null;
   const cards = [
@@ -201,75 +224,147 @@ function mostraMes(k){
     `<div class="kpi"><div class="lbl">${l}</div><div class="val">${v}</div><div class="hint">${h}</div></div>`
   ).join("");
   document.getElementById("cardMes").hidden = false;
-  // se o clique veio de outra aba, volta para a Visão geral
-  if (document.querySelector('[data-tab="visao"]').getAttribute("aria-selected") !== "true") {
-    ativaAba("visao", true);
-  }
+  if (ABA !== "visao") ativaAba("visao", true);
   document.getElementById("cardMes").scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+/* ---------------------------------------------------------------- filtros */
+function anoDestaque(){
+  if (FILTRO.startsWith("ano-")) return +FILTRO.slice(4);
+  if (FILTRO.startsWith("pa-")) return 2022 + Math.floor((+FILTRO.slice(3) - 1) / 4);
+  return null;
+}
+
+function selecaoHeat(){
+  if (FILTRO === "todos") return null;
+  if (FILTRO.startsWith("ano-")) return {ano: +FILTRO.slice(4)};
+  return {keys: new Set(SLICE.meses.map(m => m.k))};
+}
+
+function atualizaResumo(){
+  const s = SLICE;
+  const faixa = s.periodoIni === s.periodoFim ? s.periodoIni : `${s.periodoIni} a ${s.periodoFim}`;
+  document.getElementById("resumoFiltro").innerHTML =
+    `<b>${esc(s.label)}</b> · ${faixa} · ${fmtNum.format(s.lancamentos)} lançamentos · <b>${brl2(s.totalDespesas)}</b> em despesas`;
+}
+
+function renderFiltros(){
+  const tot = DATA.filtros.todos.totalDespesas;
+  const todosHtml = `<button class="chip chip-ano chip-todos ${FILTRO === "todos" ? "is-active" : ""}" data-filtro="todos"
+      data-tip="Período completo\n${brl2(tot)}">
+      <span class="chip-ano-num">Todos</span>
+      <span class="chip-ano-val">${compact(tot)}</span>
+      <span class="chip-ano-pct">100%</span>
+    </button>`;
+  const anosHtml = DATA.anos.map(a => {
+    const ativo = FILTRO === `ano-${a.ano}`;
+    return `<button class="chip chip-ano ${ativo ? "is-active" : ""}" data-filtro="ano-${a.ano}"
+      data-tip="${a.ano}\n${brl2(a.total)}\n${fmtNum.format(a.lancamentos)} lançamentos">
+      <span class="chip-ano-num">${a.ano}</span>
+      <span class="chip-ano-val">${compact(a.total)}</span>
+      <span class="chip-ano-pct">${pct(a.total/tot)}</span>
+    </button>`;
+  }).join("");
+  document.getElementById("chipsAnos").innerHTML = todosHtml + anosHtml;
+
+  const pasHtml = DATA.pas.map(p => {
+    const ativo = FILTRO === `pa-${p.pa}`;
+    const vazio = p.total === 0;
+    return `<button class="chip chip-pa ${ativo ? "is-active" : ""} ${vazio ? "is-empty" : ""}" data-filtro="pa-${p.pa}"
+      data-tip="${p.label} (${p.faixa})\n${vazio ? "sem lançamentos" : brl2(p.total)}\n${fmtNum.format(p.lancamentos)} lançamentos">
+      <span class="chip-pa-n">${p.pa}º</span>
+      <span class="chip-pa-v">${vazio ? "—" : compact(p.total)}</span>
+    </button>`;
+  }).join("");
+  document.getElementById("chipsPas").innerHTML = pasHtml;
+
+  document.querySelectorAll("[data-filtro]").forEach(el => {
+    el.addEventListener("click", () => setFiltro(el.dataset.filtro));
+  });
+  bindTips();
+}
+
+function setFiltro(key){
+  if (!DATA || !DATA.filtros[key]) return;
+  FILTRO = key;
+  SLICE = DATA.filtros[key];
+  document.querySelectorAll("[data-filtro]").forEach(el => {
+    el.classList.toggle("is-active", el.dataset.filtro === key);
+  });
+  atualizaResumo();
+  renderTudo();
+}
+
+/* ---------------------------------------------------------------- estado vazio */
+function vazioHtml(){
+  return `<div class="vazio">
+    <div class="vazio-icone">🗓️</div>
+    <h2>Sem lançamentos neste período</h2>
+    <p>O <b>${esc(SLICE.label)}</b> (${SLICE.periodoIni} a ${SLICE.periodoFim}) não tem despesas registradas.</p>
+    <p class="vazio-dica">Escolha outro ano ou período avaliatório na barra de filtros acima.</p>
+  </div>`;
 }
 
 /* ---------------------------------------------------------------- render: visão geral */
 function renderVisao(){
-  const m = DATA.meta;
-  const meses = DATA.meses;
-  const mediaMes = m.totalDespesas / meses.filter(x => x.desp > 0).length;
+  const s = SLICE;
+  const meses = s.meses;
+  const mesesComGasto = meses.filter(x => x.desp > 0).length || 1;
+  const mediaMes = s.totalDespesas / mesesComGasto;
   const kpis = [
-    ["Despesas no período", brl2(m.totalDespesas), "todos os gastos pagos"],
-    ["Receitas / ingressos", brl2(m.totalReceitas), "repasses, rendimentos e receitas próprias"],
-    ["Saldo do período", brl2(m.saldo), "receitas menos despesas"],
-    ["Média mensal de despesa", brl2(mediaMes), `${meses.filter(x=>x.desp>0).length} meses com gasto`],
-    ["Fornecedores", fmtNum.format(m.fornecedores), "contagem, sem identificação"],
+    ["Despesas no período", brl2(s.totalDespesas), esc(s.label)],
+    ["Receitas / ingressos", brl2(s.totalReceitas), "no período"],
+    ["Saldo do período", brl2(s.saldo), "receitas menos despesas"],
+    ["Média mensal de despesa", brl2(mediaMes), `${mesesComGasto} meses com gasto`],
+    ["Fornecedores", fmtNum.format(s.fornecedores), "contagem, sem identificação"],
   ];
   document.getElementById("kpis").innerHTML = kpis.map(([l,v,h]) =>
     `<div class="kpi"><div class="lbl">${l}</div><div class="val">${v}</div><div class="hint">${h}</div></div>`).join("");
 
-  const pico = [...meses].sort((a,b) => b.desp - a.desp)[0];
-  const pessoal = DATA.grupos.find(g => g.n === "Pessoal");
-  const consult = DATA.segmentos.find(s => s.n === "Consultoria técnica");
-  const regular = DATA.atividades.find(a => a.n === "Regularização fundiária do PERD");
+  const pico = [...meses].sort((a,b) => b.desp - a.desp)[0] || {label:"—", desp:0};
+  const pessoal = s.grupos.find(g => g.n === "Pessoal") || {v:0};
+  const fim = s.atividades.filter(a => !EXCLUIR_ATIV.has(a.n));
+  const topFim = fim[0] || {n:"—", v:0};
+  const topSeg = s.segmentos.find(x => x.n !== "Folha e encargos") || {n:"—", v:0};
   document.getElementById("destaques").innerHTML =
-    `<b>Destaques</b><br>
-     • <b>Pessoal</b> concentra ${pct(pessoal.v/m.totalDespesas)} das despesas (${brl(pessoal.v)}).<br>
-     • Maior frente de atividade: <b>${regular ? regular.n : "—"}</b> (${brl(regular ? regular.v : 0)}).<br>
-     • Maior segmento de fornecedor: <b>Consultoria técnica</b> (${brl(consult ? consult.v : 0)}), atrás apenas da folha.<br>
+    `<b>Destaques do período</b><br>
+     • <b>Pessoal</b> concentra ${pct(pessoal.v/s.totalDespesas)} das despesas (${brl(pessoal.v)}).<br>
+     • Maior frente de atividade-fim: <b>${esc(topFim.n)}</b> (${brl(topFim.v)}).<br>
+     • Maior segmento de fornecedor (fora a folha): <b>${esc(topSeg.n)}</b> (${brl(topSeg.v)}).<br>
      • Mês de maior gasto: <b>${pico.label}</b> (${brl2(pico.desp)}).`;
 
   document.getElementById("chartMes").innerHTML = linhaMes(meses);
-  document.getElementById("donutGrupo").innerHTML = donut(DATA.grupos, {cores:CORES_GRUPO, rotulo:"total"});
-  document.getElementById("barsCat").innerHTML = barras(DATA.categorias, m.totalDespesas);
-  document.getElementById("barsSub").innerHTML = barras(DATA.subcategorias, m.totalDespesas);
+  document.getElementById("donutGrupo").innerHTML = donut(s.grupos, {cores:CORES_GRUPO, rotulo:"total"});
+  document.getElementById("barsCat").innerHTML = barras(s.categorias, s.totalDespesas);
+  document.getElementById("barsSub").innerHTML = barras(s.subcategorias, s.totalDespesas);
 
   document.getElementById("calloutExec").innerHTML =
     `<b>Regra da executora:</b> os gastos pagos à executora que <b>não</b> são salários, encargos ou benefícios trabalhistas
      (aluguel, contabilidade, TI, limpeza etc.) aparecem como <b>“Executora — administração (área meio)”</b>.
      A folha dela permanece no bloco <b>Pessoal (folha e encargos)</b> — nunca em área meio.`;
 
-  document.querySelectorAll(".bar-mes, .heat .c[data-k]").forEach(el => {
+  document.querySelectorAll(".bar-mes").forEach(el => {
     el.addEventListener("click", () => mostraMes(el.getAttribute("data-k")));
   });
 }
 
 /* ---------------------------------------------------------------- render: atividades */
 function renderAtividades(){
-  const m = DATA.meta;
-  const ativ = DATA.atividades;
-  const corAtiv = (i,p) => CORES_ATIV[p.n] || PALETA[i % PALETA.length];
+  const s = SLICE;
   document.getElementById("barsAtiv").innerHTML =
-    barras(ativ, m.totalDespesas, {cor:corAtiv});
+    barras(s.atividades, s.totalDespesas, {cor:(i,p) => CORES_ATIV[p.n] || PALETA[i % PALETA.length]});
 
-  const excluir = new Set(["Pessoal (folha e encargos)","Executora — administração (área meio)",
-                           "Área Meio (administração)","Não informada","Demais atividades"]);
-  const fim = ativ.filter(a => !excluir.has(a.n));
+  const fim = s.atividades.filter(a => !EXCLUIR_ATIV.has(a.n));
   const totalFim = soma(fim);
   document.getElementById("barsAtivFim").innerHTML =
     `<p class="cap">Total aplicado diretamente em frentes do projeto: <b>${brl(totalFim)}</b></p>` +
     barras(fim, totalFim, {cor:(i,p) => PALETA[(i+2) % PALETA.length]});
 
-  const pessoal = ativ.find(a => a.n === "Pessoal (folha e encargos)") || {v:0};
-  const admExec = ativ.find(a => a.n === "Executora — administração (área meio)") || {v:0};
-  const adm = ativ.find(a => a.n === "Área Meio (administração)") || {v:0};
-  const naoInf = ativ.find(a => a.n === "Não informada") || {v:0};
-  const tot = m.totalDespesas;
+  const pessoal = s.atividades.find(a => a.n === "Pessoal (folha e encargos)") || {v:0};
+  const admExec = s.atividades.find(a => a.n === "Executora — administração (área meio)") || {v:0};
+  const adm = s.atividades.find(a => a.n === "Área Meio (administração)") || {v:0};
+  const naoInf = s.atividades.find(a => a.n === "Não informada") || {v:0};
+  const tot = s.totalDespesas;
   document.getElementById("calloutAtiv").innerHTML =
     `<b>Composição do gasto:</b>
      Pessoal ${pct(pessoal.v/tot)} (${brl(pessoal.v)}) ·
@@ -282,44 +377,39 @@ function renderAtividades(){
 
 /* ---------------------------------------------------------------- render: fornecedores */
 function renderFornecedores(){
-  const m = DATA.meta;
-  const seg = DATA.segmentos;
+  const s = SLICE;
   document.getElementById("barsSeg").innerHTML =
-    barras(seg, m.totalDespesas, {cor:(i,p) => CORES_SEG[p.n] || PALETA[i % PALETA.length]});
+    barras(s.segmentos, s.totalDespesas, {cor:(i,p) => CORES_SEG[p.n] || PALETA[i % PALETA.length]});
 
-  const top6 = seg.slice(0,6);
-  const resto = seg.slice(6);
-  const donutSeg = top6.map(s => ({...s}));
+  const top6 = s.segmentos.slice(0,6);
+  const resto = s.segmentos.slice(6);
+  const donutSeg = top6.map(x => ({...x}));
   if (resto.length) donutSeg.push({n:"Demais segmentos", v:soma(resto)});
-  document.getElementById("donutSeg").innerHTML =
-    donut(donutSeg, {cores:CORES_SEG, rotulo:"total"});
+  document.getElementById("donutSeg").innerHTML = donut(donutSeg, {cores:CORES_SEG, rotulo:"total"});
 
   document.getElementById("barsForma").innerHTML =
-    barras(DATA.formas.filter(f => f.v > 0), m.totalDespesas, {cor:i => PALETA[(i+3) % PALETA.length]});
+    barras(s.formas.filter(f => f.v > 0), s.totalDespesas, {cor:i => PALETA[(i+3) % PALETA.length]});
 
-  const negativas = DATA.formas.filter(f => f.v < 0);
-  const notaForma = negativas.length
+  const negativas = s.formas.filter(f => f.v < 0);
+  document.getElementById("notaForma").innerHTML = negativas.length
     ? `<p class="nota">Estornos já líquidos: ${negativas.map(f => `${esc(f.n)} ${brl2(f.v)}`).join(" · ")} (não aparecem na barra).</p>`
     : "";
-  document.getElementById("barsForma").insertAdjacentHTML("afterend", notaForma);
 
   document.getElementById("notaSeg").innerHTML =
     `Os fornecedores são identificados apenas pelo <b>segmento de atuação</b> (o que fazem), nunca pelo nome,
      CPF ou CNPJ. Salários e encargos são sempre somados em <b>“Folha e encargos”</b>, sem abrir por pessoa.
-     Segmentos com menos de ${m.minLanc} lançamentos e valor baixo são agrupados em “Demais segmentos”.`;
+     Segmentos com menos de ${DATA.meta.minLanc} lançamentos e valor baixo são agrupados em “Demais segmentos”.`;
 }
 
 /* ---------------------------------------------------------------- render: tendências */
 function renderTendencias(){
-  const m = DATA.meta;
-  const ytd = DATA.ytd;
-  document.getElementById("barsYtd").innerHTML =
-    barras(ytd.map(y => ({n:String(y.ano), v:y.v})), 0, {cor:i => "#1f3864"});
+  const s = SLICE;
+  document.getElementById("barsYtd").innerHTML = barrasAnos(DATA.ytd, anoDestaque());
   document.getElementById("capYtd").textContent =
-    `Acumulado de janeiro a ${MESES[m.corteYtd-1]} — mesmo recorte em todos os anos (2026 é ano em andamento até setembro).`;
+    `Acumulado de janeiro a ${MESES[DATA.meta.corteYtd-1]} — mesmo recorte em todos os anos (2026 é ano em andamento até setembro).`;
 
-  document.getElementById("heat").innerHTML = heat(DATA.meses);
-  const tab = tabelaVariacao(DATA.meses);
+  document.getElementById("heat").innerHTML = heat(FULL_LIST, selecaoHeat());
+  const tab = tabelaVariacao(s.meses);
   document.getElementById("tabVar").querySelector("thead").innerHTML = tab.head;
   document.getElementById("tabVar").querySelector("tbody").innerHTML = tab.rows;
 
@@ -330,13 +420,13 @@ function renderTendencias(){
 
 /* ---------------------------------------------------------------- render: detalhamento */
 function renderDetalhe(){
-  const m = DATA.meta;
+  const s = SLICE;
   document.getElementById("barsDet").innerHTML =
-    barras(DATA.detalhamento, m.totalDespesas, {
+    barras(s.detalhamento, s.totalDespesas, {
       cor:(i,p) => p.n === "Não classificado" ? "#de6a3a" : PALETA[i % PALETA.length]
     });
 
-  const q = DATA.qualidade;
+  const q = s.qualidade;
   const cards = [
     ["Estornos", fmtNum.format(q.estornos), "lançamentos já líquidos"],
     ["Efeito dos estornos", brl2(q.estornos_valor), "valor líquido"],
@@ -351,29 +441,57 @@ function renderDetalhe(){
 
   document.getElementById("metodo").innerHTML = `
     <p class="cap">Base: relatórios financeiros oficiais do Termo de Parceria (Diário de Entradas e Saídas),
-    consolidados por período avaliatório. <b>${fmtNum.format(m.lancamentos)} lançamentos</b> entre
-    <b>${m.periodoIni}</b> e <b>${m.periodoFim}</b>.</p>
+    consolidados por período avaliatório. <b>${fmtNum.format(DATA.meta.lancamentos)} lançamentos</b> entre
+    <b>${DATA.meta.periodoIni}</b> e <b>${DATA.meta.periodoFim}</b>.</p>
     <ul class="lista">
       <li><b>Somente totais agregados.</b> Não há lançamento individual, nome de pessoa, CPF, CNPJ, documento ou histórico.</li>
       <li><b>Fornecedores:</b> identificados pelo segmento de atuação. Salários e encargos sempre agrupados em “Folha e encargos”.</li>
       <li><b>Executora:</b> custos administrativos pagos a ela (fora folha) aparecem como “Executora — administração (área meio)”.</li>
-      <li><b>Supressão:</b> subcategorias/atividades com menos de ${m.minLanc} lançamentos e valor baixo são agrupadas em “Demais”.</li>
+      <li><b>Filtros:</b> por ano de execução (2022–2026) ou por período avaliatório trimestral (1º P.A = jan–mar/2022; 19º P.A = jul–set/2026).</li>
+      <li><b>Supressão:</b> subcategorias/atividades com menos de ${DATA.meta.minLanc} lançamentos e valor baixo são agrupadas em “Demais”.</li>
       <li><b>Regime:</b> data de pagamento (caixa). Não há comparação com competência.</li>
       <li><b>Atualização:</b> manual, a partir da base tratada local.</li>
     </ul>`;
+}
+
+/* ---------------------------------------------------------------- render geral */
+function mostraPainel(){
+  if (!SLICE) return;
+  const vazio = SLICE.lancamentos === 0;
+  document.querySelectorAll(".panel").forEach(p => {
+    p.hidden = vazio || p.id !== "p-" + ABA;
+  });
+}
+
+function renderTudo(){
+  const vazio = !SLICE.lancamentos;
+  document.getElementById("vazioGeral").hidden = !vazio;
+  if (vazio){
+    document.getElementById("vazioGeral").innerHTML = vazioHtml();
+    mostraPainel();
+    return;
+  }
+  renderVisao();
+  renderAtividades();
+  renderFornecedores();
+  renderTendencias();
+  renderDetalhe();
+  mostraPainel();
+  bindTips();
 }
 
 /* ---------------------------------------------------------------- abas */
 function ativaAba(nome, silencioso){
   const alvo = document.querySelector(`.tab[data-tab="${nome}"]`);
   if (!alvo) return;
+  ABA = nome;
   document.querySelectorAll(".tab").forEach(t => {
     const on = t.dataset.tab === nome;
     t.classList.toggle("is-active", on);
     t.setAttribute("aria-selected", on ? "true" : "false");
     t.tabIndex = on ? 0 : -1;
   });
-  document.querySelectorAll(".panel").forEach(p => { p.hidden = p.id !== "p-" + nome; });
+  mostraPainel();
   try { if (location.hash !== "#" + nome) history.replaceState(null, "", "#" + nome); } catch (e) { /* file:// */ }
   if (!silencioso) window.scrollTo({top:0, behavior:"smooth"});
 }
@@ -421,6 +539,7 @@ function initTema(){
 async function main(){
   initAbas();
   initTema();
+  document.getElementById("limparFiltro").addEventListener("click", () => setFiltro("todos"));
 
   let dados;
   try {
@@ -438,7 +557,10 @@ async function main(){
   }
 
   DATA = dados;
-  DATA.meses.forEach(m => porMes.set(m.k, m));
+  FULL_LIST = DATA.filtros.todos.meses;
+  FULL_IDX = new Map(FULL_LIST.map((m,i) => [m.k, i]));
+  FULL_LIST.forEach(m => FULL.set(m.k, m));
+  SLICE = DATA.filtros.todos;
 
   const m = DATA.meta;
   document.getElementById("sub").textContent =
@@ -448,12 +570,9 @@ async function main(){
      <b>Proteção de dados:</b> somente totais agregados; sem nomes, CPF, CNPJ, documentos ou histórico.<span class="sep">·</span>
      <b>Atualizado em:</b> ${m.atualizado}.`;
 
-  renderVisao();
-  renderAtividades();
-  renderFornecedores();
-  renderTendencias();
-  renderDetalhe();
-  bindTips();
+  renderFiltros();
+  atualizaResumo();
+  renderTudo();
 }
 
 main();
