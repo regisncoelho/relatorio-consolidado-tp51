@@ -1,0 +1,168 @@
+/* ============================================================
+   Relatório Financeiro Agregado — TP 51/2021
+   ============================================================ */
+:root{
+  --bg:#f3f5fa;
+  --bg-2:#e9edf5;
+  --panel:#ffffff;
+  --panel-2:#fbfcfe;
+  --ink:#101828;
+  --ink-2:#344054;
+  --muted:#667085;
+  --line:#e4e7ec;
+  --line-2:#eef0f4;
+  --azul:#1f3864;
+  --azul-2:#2f6f8f;
+  --teal:#2f9e8f;
+  --verde:#4f9d69;
+  --ambar:#e0a33e;
+  --laranja:#de6a3a;
+  --roxo:#7c5cbf;
+  --vermelho:#c0392b;
+  --radius:16px;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 6px 18px rgba(16,24,40,.05);
+  --focus:0 0 0 3px rgba(47,158,143,.35);
+}
+[data-theme="dark"]{
+  --bg:#0e1420;
+  --bg-2:#0a0f18;
+  --panel:#151d2c;
+  --panel-2:#111826;
+  --ink:#eef2f8;
+  --ink-2:#cbd5e1;
+  --muted:#94a3b8;
+  --line:#243146;
+  --line-2:#1c2739;
+  --azul:#8fb3e8;
+  --azul-2:#7cc4e0;
+  --teal:#4fd1c0;
+  --verde:#7ed49a;
+  --ambar:#f2c063;
+  --laranja:#f08a5d;
+  --roxo:#b49bee;
+  --vermelho:#f08a8a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.25);
+  --focus:0 0 0 3px rgba(79,209,192,.45);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:linear-gradient(180deg,var(--bg) 0%,var(--bg) 60%,var(--bg-2) 100%);
+  min-height:100vh;
+  color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:14px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+a{color:var(--azul-2)}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* ---------------------------------------------------------------- topo */
+.top{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;padding-top:18px;padding-bottom:14px}
+.head h1{font-size:22px;letter-spacing:-.02em;margin:0 0 4px}
+.sub{color:var(--muted);font-size:12.5px;margin:0}
+.head-actions{display:flex;align-items:center;gap:10px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--verde) 14%,var(--panel));color:var(--verde);border:1px solid color-mix(in srgb,var(--verde) 35%,var(--line));border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.btn-icon{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;font-size:17px;transition:transform .15s,background .15s}
+.btn-icon:hover{transform:translateY(-1px);background:var(--panel-2)}
+
+/* ---------------------------------------------------------------- abas */
+.tabs-bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-top:10px;padding-bottom:10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:1px solid transparent;background:transparent;color:var(--muted);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;transition:all .15s}
+.tab:hover{color:var(--ink);background:var(--panel)}
+.tab.is-active{background:var(--panel);color:var(--ink);border-color:var(--line);box-shadow:var(--shadow)}
+.tab:focus-visible{outline:none;box-shadow:var(--focus)}
+
+/* ---------------------------------------------------------------- painéis/cards */
+main{padding-top:22px;padding-bottom:10px}
+.panel{animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:16px;min-width:0}
+.card h2{font-size:15.5px;margin:0 0 3px;letter-spacing:-.01em}
+.card h2 span{color:var(--muted);font-weight:600}
+.cap{font-size:12px;color:var(--muted);margin:0 0 14px}
+.nota{font-size:12px;color:var(--muted);margin:12px 0 0;line-height:1.6}
+.grid2{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start}
+.grid2b{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+@media(max-width:920px){.grid2,.grid2b{grid-template-columns:1fr}}
+
+/* ---------------------------------------------------------------- KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;box-shadow:var(--shadow);min-width:0}
+.kpi .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.kpi .val{font-size:22px;font-weight:800;margin-top:7px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;overflow-wrap:anywhere}
+.kpi .hint{font-size:11.5px;color:var(--muted);margin-top:4px}
+.kpi.pos .val{color:var(--verde)}
+.kpi.neg .val{color:var(--vermelho)}
+.kpis-sm{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:0}
+.kpis-sm .kpi{padding:12px 14px}
+.kpis-sm .kpi .val{font-size:18px}
+
+/* ---------------------------------------------------------------- barras */
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:grid;grid-template-columns:minmax(140px,40%) 1fr auto;gap:12px;align-items:center;font-size:13px}
+.bar-row .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.bar-row .track{display:block;background:var(--line-2);border-radius:999px;height:10px;overflow:hidden}
+.bar-row .fill{display:block;height:100%;border-radius:999px;transition:width .5s ease}
+.bar-row .num{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;white-space:nowrap}
+.bar-row.clickable{cursor:pointer;border-radius:8px;margin:-3px -6px;padding:3px 6px;transition:background .12s}
+.bar-row.clickable:hover{background:var(--panel-2)}
+.bar-row.is-muted{opacity:.55}
+
+/* ---------------------------------------------------------------- rosca */
+.donut-wrap{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.donut-wrap svg{width:190px;flex:0 0 auto}
+.donut-legend{display:flex;flex-direction:column;gap:7px;font-size:13px;min-width:160px;flex:1}
+.donut-legend div{display:flex;align-items:center;gap:8px}
+.donut-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;flex:0 0 auto}
+.donut-legend b{margin-left:auto;font-variant-numeric:tabular-nums}
+
+/* ---------------------------------------------------------------- heatmap */
+.heat-scroll{overflow-x:auto}
+.heat{display:grid;grid-template-columns:52px repeat(12,minmax(46px,1fr));gap:4px;font-size:12px;min-width:660px}
+.heat .h{color:var(--muted);font-size:10.5px;text-align:center;text-transform:uppercase;font-weight:800;align-self:center}
+.heat .yc{color:var(--muted);font-weight:800;display:flex;align-items:center}
+.heat .c{border-radius:7px;padding:7px 2px;text-align:center;font-variant-numeric:tabular-nums;font-size:10.5px;white-space:nowrap;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.heat .c:hover{transform:scale(1.06);box-shadow:var(--shadow);outline:1px solid var(--teal)}
+.heat .c.empty{background:var(--line-2);color:var(--muted);cursor:default}
+.heat .c.empty:hover{transform:none;box-shadow:none;outline:none}
+
+/* ---------------------------------------------------------------- tabela */
+.table-scroll{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line-2);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--panel)}
+thead th{position:sticky;top:0;background:var(--panel-2);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:800;z-index:2}
+tbody tr:hover td{background:var(--panel-2)}
+tbody tr:hover td:first-child{background:var(--panel-2)}
+td.pos{color:var(--verde);font-weight:600}
+td.neg{color:var(--vermelho);font-weight:600}
+td.num{font-variant-numeric:tabular-nums}
+
+/* ---------------------------------------------------------------- avisos */
+.callout{background:color-mix(in srgb,var(--ambar) 9%,var(--panel));border:1px solid color-mix(in srgb,var(--ambar) 34%,var(--line));border-radius:14px;padding:14px 16px;font-size:12.5px;color:var(--ink-2);line-height:1.6;margin-bottom:16px}
+.callout.tight{margin:0;background:color-mix(in srgb,var(--azul-2) 7%,var(--panel));border-color:color-mix(in srgb,var(--azul-2) 28%,var(--line))}
+.callout b{color:var(--ink)}
+.muted{color:var(--muted)}
+.lista{margin:8px 0 0;padding-left:20px;font-size:12.5px;color:var(--ink-2);line-height:1.7}
+.lista li{margin-bottom:6px}
+.lista b{color:var(--ink)}
+
+/* ---------------------------------------------------------------- rodapé */
+.foot{color:var(--muted);font-size:12px;margin-top:26px;padding-bottom:48px;line-height:1.7}
+.foot b{color:var(--ink-2)}
+.foot .sep{opacity:.5;margin:0 6px}
+
+/* ---------------------------------------------------------------- tooltip */
+.tip{position:fixed;z-index:60;pointer-events:none;opacity:0;transform:translate(-50%,calc(-100% - 10px));background:var(--ink);color:var(--bg);padding:7px 10px;border-radius:9px;font-size:12px;font-weight:600;max-width:280px;white-space:pre-line;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:opacity .12s}
+.tip.show{opacity:1}
+[data-theme="dark"] .tip{background:#e8eef8;color:#0e1420}
+
+/* ---------------------------------------------------------------- svg */
+svg{display:block;width:100%;height:auto}
+svg text{font-family:inherit}

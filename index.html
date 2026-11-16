@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatório Financeiro Agregado - TP 51/2021</title>
+<meta name="description" content="Painel público com dados agregados de despesas do Termo de Parceria nº 51/2021. Sem nomes de fornecedores nem dados pessoais.">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap head">
+    <div class="head-title">
+      <h1>Relatório Financeiro Agregado - TP 51/2021</h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <div class="head-actions">
+      <span class="badge" title="Nenhum nome, CPF/CNPJ ou lançamento individual é exibido">🔒 dados agregados · sem dados pessoais</span>
+      <button class="btn-icon" id="theme" type="button" aria-label="Alternar tema claro/escuro">🌙</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs-bar" aria-label="Seções do relatório">
+  <div class="wrap tabs" role="tablist">
+    <button class="tab is-active" role="tab" id="t-visao" data-tab="visao" aria-selected="true" aria-controls="p-visao">Visão geral</button>
+    <button class="tab" role="tab" id="t-atividades" data-tab="atividades" aria-selected="false" aria-controls="p-atividades" tabindex="-1">Atividades</button>
+    <button class="tab" role="tab" id="t-fornecedores" data-tab="fornecedores" aria-selected="false" aria-controls="p-fornecedores" tabindex="-1">Fornecedores</button>
+    <button class="tab" role="tab" id="t-tendencias" data-tab="tendencias" aria-selected="false" aria-controls="p-tendencias" tabindex="-1">Tendências</button>
+    <button class="tab" role="tab" id="t-detalhe" data-tab="detalhe" aria-selected="false" aria-controls="p-detalhe" tabindex="-1">Detalhamento</button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- ============================================================ VISÃO GERAL -->
+  <section class="panel" id="p-visao" role="tabpanel" aria-labelledby="t-visao">
+    <div class="kpis" id="kpis"></div>
+    <div class="callout" id="destaques"></div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Evolução mensal das despesas</h2>
+        <p class="cap">Barras = total pago no mês · linha dourada = média móvel de 3 meses. Clique em um mês para ver o detalhe.</p>
+        <div id="chartMes"></div>
+      </div>
+      <div class="card">
+        <h2>Composição por grupo</h2>
+        <p class="cap">Pessoal, custeio e investimento</p>
+        <div id="donutGrupo"></div>
+      </div>
+    </div>
+
+    <div class="card" id="cardMes" hidden>
+      <h2>Detalhe do mês <span id="mesTitulo"></span></h2>
+      <div class="grid4" id="mesDetalhe"></div>
+    </div>
+
+    <div class="grid2b">
+      <div class="card">
+        <h2>Despesas por categoria</h2>
+        <p class="cap">Participação no total do período</p>
+        <div id="barsCat"></div>
+      </div>
+      <div class="card">
+        <h2>Principais subcategorias</h2>
+        <p class="cap">A cauda pequena é agrupada em “Demais subcategorias”</p>
+        <div id="barsSub"></div>
+      </div>
+    </div>
+
+    <div class="callout" id="calloutExec"></div>
+  </section>
+
+  <!-- ============================================================ ATIVIDADES -->
+  <section class="panel" id="p-atividades" role="tabpanel" aria-labelledby="t-atividades" hidden>
+    <div class="grid2">
+      <div class="card">
+        <h2>Para onde foi o dinheiro</h2>
+        <p class="cap">Despesas por frente de trabalho do projeto (Apropriação às Atividades)</p>
+        <div id="barsAtiv"></div>
+      </div>
+      <div class="card">
+        <h2>Atividades-fim</h2>
+        <p class="cap">Mesma visão, sem folha, área meio e itens não informados</p>
+        <div id="barsAtivFim"></div>
+      </div>
+    </div>
+    <div class="callout" id="calloutAtiv"></div>
+  </section>
+
+  <!-- ============================================================ FORNECEDORES -->
+  <section class="panel" id="p-fornecedores" role="tabpanel" aria-labelledby="t-fornecedores" hidden>
+    <div class="grid2">
+      <div class="card">
+        <h2>Despesas por segmento do fornecedor</h2>
+        <p class="cap">O que o fornecedor faz — nunca quem ele é</p>
+        <div id="barsSeg"></div>
+      </div>
+      <div class="card">
+        <h2>Participação por segmento</h2>
+        <p class="cap">Top 6 segmentos + demais</p>
+        <div id="donutSeg"></div>
+      </div>
+    </div>
+
+    <div class="grid2b">
+      <div class="card">
+        <h2>Forma de pagamento</h2>
+        <p class="cap">Como os pagamentos saíram</p>
+        <div id="barsForma"></div>
+      </div>
+      <div class="card">
+        <h2>Como ler esta aba</h2>
+        <div class="callout tight" id="notaSeg"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ TENDÊNCIAS -->
+  <section class="panel" id="p-tendencias" role="tabpanel" aria-labelledby="t-tendencias" hidden>
+    <div class="grid2b">
+      <div class="card">
+        <h2>Acumulado por ano</h2>
+        <p class="cap" id="capYtd"></p>
+        <div id="barsYtd"></div>
+      </div>
+      <div class="card">
+        <h2>Mapa de calor: ano × mês</h2>
+        <p class="cap">Quanto mais escuro, maior o gasto no mês. Clique em uma célula.</p>
+        <div class="heat-scroll"><div class="heat" id="heat"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Variação mês a mês</h2>
+      <p class="cap">Despesas do mês, variação sobre o mês anterior e sobre o mesmo mês do ano anterior</p>
+      <div class="table-scroll"><table id="tabVar"><thead></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ DETALHAMENTO -->
+  <section class="panel" id="p-detalhe" role="tabpanel" aria-labelledby="t-detalhe" hidden>
+    <div class="grid2">
+      <div class="card">
+        <h2>O que havia dentro das categorias genéricas</h2>
+        <p class="cap">“Consultoria” e “Outros Gastos Gerais” abertos por tipo de gasto</p>
+        <div id="barsDet"></div>
+      </div>
+      <div class="card">
+        <h2>Qualidade e transparência dos dados</h2>
+        <p class="cap">Indicadores de conferência da base</p>
+        <div class="kpis kpis-sm" id="qualidade"></div>
+        <p class="nota" id="notaQualidade"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Fonte e metodologia</h2>
+      <div id="metodo"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap foot" id="foot"></footer>
+<div id="tip" class="tip" role="status" aria-live="polite"></div>
+<script src="js/app.js"></script>
+</body>
+</html>
