@@ -249,6 +249,10 @@ function atualizaResumo(){
 }
 
 function renderFiltros(){
+  const todosHtml = `<button class="chip chip-ano chip-todos ${FILTRO === "todos" ? "is-active" : ""}" data-filtro="todos"
+      data-tip="Período completo\n${brl2(DATA.filtros.todos.totalDespesas)}\n${fmtNum.format(DATA.filtros.todos.lancamentos)} lançamentos">
+      <span class="chip-ano-num">Todos</span>
+    </button>`;
   const anosHtml = DATA.anos.map(a => {
     const ativo = FILTRO === `ano-${a.ano}`;
     return `<button class="chip chip-ano ${ativo ? "is-active" : ""}" data-filtro="ano-${a.ano}"
@@ -256,7 +260,7 @@ function renderFiltros(){
       <span class="chip-ano-num">${a.ano}</span>
     </button>`;
   }).join("");
-  document.getElementById("chipsAnos").innerHTML = anosHtml;
+  document.getElementById("chipsAnos").innerHTML = todosHtml + anosHtml;
 
   const pasHtml = DATA.pas.map(p => {
     const ativo = FILTRO === `pa-${p.pa}`;

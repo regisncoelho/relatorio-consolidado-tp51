@@ -20,7 +20,7 @@ tema claro/escuro, tooltips e layout responsivo. **Funciona offline** (sem CDN) 
 
 **Filtros de período** no topo da página:
 
-- **Por ano** — os 5 anos de execução (2022–2026);
+- **Por ano** — os 5 anos de execução (2022–2026), com o chip **Todos** para o período completo;
 - **Por período avaliatório (P.A)** — trimestres de 1º a 19º (1º P.A = jan–mar/2022; 19º P.A = jul–set/2026);
 - períodos sem lançamentos (ex.: 1º P.A) mostram um aviso amigável de “sem lançamentos”;
 - os filtros valem para todas as abas; o mapa de calor e o acumulado por ano continuam mostrando os 5 anos,
