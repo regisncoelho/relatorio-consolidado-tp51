@@ -412,19 +412,6 @@ function renderDetalhe(){
       cor:(i,p) => p.n === "Não classificado" ? "#de6a3a" : PALETA[i % PALETA.length]
     });
 
-  const q = s.qualidade;
-  const cards = [
-    ["Estornos", fmtNum.format(q.estornos), "lançamentos já líquidos"],
-    ["Efeito dos estornos", brl2(q.estornos_valor), "valor líquido"],
-    ["Possíveis duplicatas", fmtNum.format(q.possiveis_duplicatas), "marcadas, não removidas"],
-    ["Não classificados", fmtNum.format(q.nao_classificados), `${brl(q.nao_classificados_valor)} em revisão`],
-  ];
-  document.getElementById("qualidade").innerHTML = cards.map(([l,v,h]) =>
-    `<div class="kpi"><div class="lbl">${l}</div><div class="val">${v}</div><div class="hint">${h}</div></div>`).join("");
-  document.getElementById("notaQualidade").textContent =
-    "Estornos e possíveis duplicatas foram mantidos nos totais para conciliar com os relatórios oficiais; " +
-    "apenas sinalizados aqui. O item “Não classificado” é a parcela que ainda precisa de revisão manual.";
-
   document.getElementById("metodo").innerHTML = `
     <p class="cap">Base: relatórios financeiros oficiais do Termo de Parceria (Diário de Entradas e Saídas),
     consolidados por período avaliatório. <b>${fmtNum.format(DATA.meta.lancamentos)} lançamentos</b> entre

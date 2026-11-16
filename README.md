@@ -13,7 +13,7 @@ Um painel de página única, em português, com cinco abas:
 | **Atividades** | Para onde o dinheiro foi: despesas por frente de trabalho do projeto e apenas as atividades-fim |
 | **Fornecedores** | Despesas por **segmento de atuação** do fornecedor (nunca pelo nome) |
 | **Tendências** | Acumulado ano a ano, mapa de calor ano × mês e variação mês a mês |
-| **Detalhamento** | Abertura das categorias genéricas e indicadores de qualidade dos dados |
+| **Detalhamento** | Abertura das categorias genéricas e metodologia de tratamento |
 
 Interativo: clique em um mês (barra, célula do mapa de calor ou linha da tabela) para ver o detalhe,
 tema claro/escuro, tooltips e layout responsivo. **Funciona offline** (sem CDN) depois de carregado.
