@@ -11,12 +11,12 @@ Um painel de página única, em português, com seis abas:
 |---|---|
 | **Visão geral** | Indicadores do período, evolução mensal com média móvel de 3 meses, composição por grupo e principais subcategorias |
 | **Atividades** | Para onde o dinheiro foi: despesas por frente de trabalho do projeto e apenas as atividades-fim |
-| **Operação** | O que foi adquirido (serviços, compras e pessoal) e o custo de manutenção/operação do PERD |
+| **Custo Operacional** | O que foi adquirido (serviços, compras e pessoal) e o custo de manutenção/operação do PERD |
 | **Fornecedores** | Despesas por **segmento de atuação** do fornecedor (nunca pelo nome) |
 | **Tendências** | Acumulado ano a ano, mapa de calor ano × mês e variação mês a mês |
 | **Detalhamento** | Abertura das categorias genéricas e metodologia de tratamento |
 
-A aba **Operação** cruza cada atividade com **o que foi adquirido** (pessoal, serviços, compras e tributos) e mostra o **custo de operação do PERD** — gastos recorrentes de manter o parque funcionando — com a definição do que entra e do que fica de fora (investimentos e estruturação).
+A aba **Custo Operacional** cruza cada atividade com **o que foi adquirido** (pessoal, serviços, compras e tributos) e mostra o **custo de operação do PERD** — gastos recorrentes de manter o parque funcionando — com a definição do que entra e do que fica de fora (investimentos e estruturação).
 
 Interativo: clique em um mês (barra, célula do mapa de calor ou linha da tabela) para ver o detalhe,
 tema claro/escuro, tooltips e layout responsivo. **Funciona offline** (sem CDN) depois de carregado.

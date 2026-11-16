@@ -460,6 +460,7 @@ function renderAtividades(){
 /* ---------------------------------------------------------------- render: operação */
 function renderOperacao(){
   const s = SLICE, o = s.opex;
+  if (!o) return;
   const kpis = [
     ["Custo de operação (OPEX)", brl2(o.total), pct(o.total/s.totalDespesas)+" do gasto do período"],
     ["Média mensal de operação", brl2(o.media_mensal), `${o.por_mes.filter(m=>m.v>0).length} meses com gasto`],
