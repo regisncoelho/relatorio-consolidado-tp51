@@ -132,7 +132,7 @@ function linhaMes(meses){
     const x = P.l + i*bw + bw*0.16, w = bw*0.68;
     s += `<rect x="${x}" y="${y(m.desp)}" width="${w}" height="${Math.max(0, P.t+ih-y(m.desp))}" rx="2.5"
       fill="#2f6f8f" class="bar-mes" data-k="${m.k}" style="cursor:pointer"
-      data-tip="${m.label}\nDespesas: ${brl2(m.desp)}\nReceitas: ${brl2(m.rec)}\nSaldo: ${brl2(m.saldo)}\n${fmtNum.format(m.n)} lançamentos"><title>${m.label}: ${brl2(m.desp)}</title></rect>`;
+      data-tip="${m.label}\nDespesas: ${brl2(m.desp)}\nRepasses do OEP: ${brl2(m.rep)}\n${fmtNum.format(m.n)} lançamentos"><title>${m.label}: ${brl2(m.desp)}</title></rect>`;
     if (i % step === 0 || i === meses.length-1)
       s += `<text x="${P.l+i*bw+bw/2}" y="${H-22}" text-anchor="middle" font-size="10.5" style="fill:var(--muted)">${m.label}</text>`;
   });
@@ -242,7 +242,7 @@ function heat(meses, sel){  const anos = [...new Set(meses.map(m => m.k.slice(0,
 function clsVar(x){ return x === null ? "" : x >= 0 ? "pos" : "neg"; }
 
 function tabelaVariacao(rows){
-  const head = `<tr><th>Mês</th><th>Despesas</th><th>Receitas</th><th>Saldo</th><th>Δ mês anterior</th><th>Δ %</th><th>Δ mesmo mês ano anterior</th></tr>`;
+  const head = `<tr><th>Mês</th><th>Despesas</th><th>Repasses do OEP</th><th>Δ mês anterior</th><th>Δ %</th><th>Δ mesmo mês ano anterior</th></tr>`;
   const trs = rows.map(m => {
     const i = FULL_IDX.get(m.k);
     const prev = i > 0 ? FULL_LIST[i-1] : null;
@@ -254,8 +254,7 @@ function tabelaVariacao(rows){
     return `<tr data-k="${m.k}" style="cursor:pointer">
       <td>${m.label}</td>
       <td class="num">${brl2(m.desp)}</td>
-      <td class="num">${brl2(m.rec)}</td>
-      <td class="num ${m.saldo >= 0 ? "pos" : "neg"}">${brl2(m.saldo)}</td>
+      <td class="num">${brl2(m.rep)}</td>
       <td class="num ${clsVar(dMoM)}">${dMoM === null ? "—" : brl2(dMoM)}</td>
       <td class="${clsVar(pMoM)}">${pMoM === null ? "—" : (pMoM*100).toFixed(1).replace(".",",") + "%"}</td>
       <td class="num ${clsVar(dYoY)}">${dYoY === null ? "—" : brl2(dYoY)}</td>
@@ -276,8 +275,7 @@ function mostraMes(k){
   const pYoY = yoy && yoy.desp ? (m.desp - yoy.desp) / yoy.desp : null;
   const cards = [
     ["Despesas", brl2(m.desp), "no mês"],
-    ["Receitas", brl2(m.rec), "no mês"],
-    ["Saldo", brl2(m.saldo), "receitas − despesas"],
+    ["Repasses do OEP", brl2(m.rep), "no mês"],
     ["Lançamentos", fmtNum.format(m.n), "no mês"],
     ["vs. mês anterior", pMoM === null ? "—" : (pMoM*100).toFixed(1).replace(".",",") + "%", prev ? prev.label : ""],
     ["vs. mesmo mês do ano anterior", pYoY === null ? "—" : (pYoY*100).toFixed(1).replace(".",",") + "%", yoy ? yoy.label : ""],
@@ -395,8 +393,8 @@ function renderVisao(){
   const mediaMes = s.totalDespesas / mesesComGasto;
   const kpis = [
     ["Despesas no período", brl2(s.totalDespesas), esc(s.label)],
-    ["Receitas / ingressos", brl2(s.totalReceitas), "no período"],
-    ["Saldo do período", brl2(s.saldo), "receitas menos despesas"],
+    ["Repasses do OEP", brl2(s.totalRepasses), "transferências do OEP no período"],
+    ["Lançamentos", fmtNum.format(s.lancamentos), "no período"],
     ["Média mensal de despesa", brl2(mediaMes), `${mesesComGasto} meses com gasto`],
     ["Fornecedores", fmtNum.format(s.fornecedores), "contagem, sem identificação"],
   ];

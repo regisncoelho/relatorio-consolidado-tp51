@@ -108,4 +108,4 @@ python -m http.server 8765
 Relatórios financeiros oficiais do Termo de Parceria (Diário de Entradas e Saídas), consolidados
 por período avaliatório. **6.190 lançamentos**, de **30/05/2022 a 30/09/2026**.
 
-> Totais conferidos: despesas **R$ 21.001.226,35** · receitas **R$ 25.265.549,65** · saldo **R$ 4.264.323,30**.
+> Totais conferidos: despesas **R$ 21.001.226,35** · repasses do OEP **R$ 23.932.512,74**.
