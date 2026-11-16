@@ -249,31 +249,21 @@ function atualizaResumo(){
 }
 
 function renderFiltros(){
-  const tot = DATA.filtros.todos.totalDespesas;
-  const todosHtml = `<button class="chip chip-ano chip-todos ${FILTRO === "todos" ? "is-active" : ""}" data-filtro="todos"
-      data-tip="Período completo\n${brl2(tot)}">
-      <span class="chip-ano-num">Todos</span>
-      <span class="chip-ano-val">${compact(tot)}</span>
-      <span class="chip-ano-pct">100%</span>
-    </button>`;
   const anosHtml = DATA.anos.map(a => {
     const ativo = FILTRO === `ano-${a.ano}`;
     return `<button class="chip chip-ano ${ativo ? "is-active" : ""}" data-filtro="ano-${a.ano}"
       data-tip="${a.ano}\n${brl2(a.total)}\n${fmtNum.format(a.lancamentos)} lançamentos">
       <span class="chip-ano-num">${a.ano}</span>
-      <span class="chip-ano-val">${compact(a.total)}</span>
-      <span class="chip-ano-pct">${pct(a.total/tot)}</span>
     </button>`;
   }).join("");
-  document.getElementById("chipsAnos").innerHTML = todosHtml + anosHtml;
+  document.getElementById("chipsAnos").innerHTML = anosHtml;
 
   const pasHtml = DATA.pas.map(p => {
     const ativo = FILTRO === `pa-${p.pa}`;
     const vazio = p.total === 0;
     return `<button class="chip chip-pa ${ativo ? "is-active" : ""} ${vazio ? "is-empty" : ""}" data-filtro="pa-${p.pa}"
       data-tip="${p.label} (${p.faixa})\n${vazio ? "sem lançamentos" : brl2(p.total)}\n${fmtNum.format(p.lancamentos)} lançamentos">
-      <span class="chip-pa-n">${p.pa}º</span>
-      <span class="chip-pa-v">${vazio ? "—" : compact(p.total)}</span>
+      <span class="chip-pa-n">${p.pa}º PA</span>
     </button>`;
   }).join("");
   document.getElementById("chipsPas").innerHTML = pasHtml;
