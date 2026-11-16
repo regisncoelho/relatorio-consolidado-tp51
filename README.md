@@ -11,7 +11,7 @@ Um painel de página única, em português, com cinco abas:
 |---|---|
 | **Visão geral** | Indicadores do período, evolução mensal com média móvel de 3 meses, composição por grupo e principais subcategorias |
 | **Atividades** | Para onde o dinheiro foi: despesas por frente de trabalho do projeto e apenas as atividades-fim |
-| **Fornecedores** | Despesas por **segmento de atuação** do fornecedor (nunca pelo nome) e forma de pagamento |
+| **Fornecedores** | Despesas por **segmento de atuação** do fornecedor (nunca pelo nome) |
 | **Tendências** | Acumulado ano a ano, mapa de calor ano × mês e variação mês a mês |
 | **Detalhamento** | Abertura das categorias genéricas e indicadores de qualidade dos dados |
 

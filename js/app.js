@@ -387,14 +387,6 @@ function renderFornecedores(){
   if (resto.length) donutSeg.push({n:"Demais segmentos", v:soma(resto)});
   document.getElementById("donutSeg").innerHTML = donut(donutSeg, {cores:CORES_SEG, rotulo:"total"});
 
-  document.getElementById("barsForma").innerHTML =
-    barras(s.formas.filter(f => f.v > 0), s.totalDespesas, {cor:i => PALETA[(i+3) % PALETA.length]});
-
-  const negativas = s.formas.filter(f => f.v < 0);
-  document.getElementById("notaForma").innerHTML = negativas.length
-    ? `<p class="nota">Estornos já líquidos: ${negativas.map(f => `${esc(f.n)} ${brl2(f.v)}`).join(" · ")} (não aparecem na barra).</p>`
-    : "";
-
   document.getElementById("notaSeg").innerHTML =
     `Os fornecedores são identificados apenas pelo <b>segmento de atuação</b> (o que fazem), nunca pelo nome,
      CPF ou CNPJ. Salários e encargos são sempre somados em <b>“Folha e encargos”</b>, sem abrir por pessoa.
