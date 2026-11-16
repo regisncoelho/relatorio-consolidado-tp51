@@ -23,8 +23,8 @@ tema claro/escuro, tooltips e layout responsivo. **Funciona offline** (sem CDN) 
 
 **Filtros de período** no topo da página:
 
-- **Por ano** — os 5 anos de execução (2022–2026), com o chip **Todos** para o período completo;
-- **Por período avaliatório (P.A)** — trimestres de 1º a 19º (1º P.A = jan–mar/2022; 19º P.A = jul–set/2026);
+- a barra principal mostra **Todos** e os **5 anos** de execução (2022–2026);
+- o botão **Busca avançada** abre o painel com **período avaliatório** (1º a 19º P.A) e **mês** (53 meses, de mai/2022 a set/2026);
 - períodos sem lançamentos (ex.: 1º P.A) mostram um aviso amigável de “sem lançamentos”;
 - os filtros valem para todas as abas; o mapa de calor e o acumulado por ano continuam mostrando os 5 anos,
   destacando o período selecionado.
@@ -35,7 +35,7 @@ tema claro/escuro, tooltips e layout responsivo. **Funciona offline** (sem CDN) 
 index.html          ← a página
 css/app.css         ← estilos (tema claro/escuro responsivo)
 js/app.js           ← gráficos em SVG, abas, filtros, interações
-dados/dados.json    ← SOMENTE agregados (25 recortes: todos, 5 anos e 19 P.A)
+dados/dados.json    ← SOMENTE agregados (78 recortes: todos, 5 anos, 19 P.A e 53 meses)
 .nojekyll           ← evita processamento do Jekyll no Pages
 README.md
 ```

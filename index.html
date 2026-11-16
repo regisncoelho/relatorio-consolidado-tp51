@@ -33,21 +33,26 @@
 </nav>
 
 <main class="wrap">
-  <div class="filtros card" id="filtros">
-    <div class="filtros-top">
-      <div>
-        <div class="filtros-title">Filtrar por período</div>
-        <div class="filtros-resumo" id="resumoFiltro">Carregando dados…</div>
-      </div>
-      <button class="btn-limpar" id="limparFiltro" type="button">Limpar filtro</button>
-    </div>
-    <div class="filtro-linha">
-      <span class="filtro-rotulo">Ano</span>
+  <div class="filtros" id="filtros">
+    <div class="filtros-main">
       <div class="chips" id="chipsAnos"></div>
+      <button class="btn-avancado" id="btnAvancado" type="button" aria-expanded="false" aria-controls="painelAvancado">
+        Busca avançada <span class="chev" aria-hidden="true">▾</span>
+      </button>
     </div>
-    <div class="filtro-linha">
-      <span class="filtro-rotulo">Período avaliatório</span>
-      <div class="chips" id="chipsPas"></div>
+    <div class="filtros-resumo" id="resumoFiltro">Carregando dados…</div>
+    <div class="avancado" id="painelAvancado" hidden>
+      <div class="filtro-linha">
+        <span class="filtro-rotulo">Período avaliatório</span>
+        <div class="chips" id="chipsPas"></div>
+      </div>
+      <div class="filtro-linha">
+        <span class="filtro-rotulo">Mês</span>
+        <select class="sel-mes" id="selMes" aria-label="Selecionar mês"></select>
+      </div>
+      <div class="avancado-acoes">
+        <button class="btn-limpar" id="limparFiltro" type="button">Limpar filtro</button>
+      </div>
     </div>
   </div>
 

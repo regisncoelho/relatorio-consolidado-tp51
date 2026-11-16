@@ -295,12 +295,14 @@ function mostraMes(k){
 function anoDestaque(){
   if (FILTRO.startsWith("ano-")) return +FILTRO.slice(4);
   if (FILTRO.startsWith("pa-")) return 2022 + Math.floor((+FILTRO.slice(3) - 1) / 4);
+  if (FILTRO.startsWith("mes-")) return +FILTRO.slice(4, 8);
   return null;
 }
 
 function selecaoHeat(){
   if (FILTRO === "todos") return null;
   if (FILTRO.startsWith("ano-")) return {ano: +FILTRO.slice(4)};
+  if (FILTRO.startsWith("mes-")) return {keys: new Set([FILTRO.slice(4)])};
   return {keys: new Set(SLICE.meses.map(m => m.k))};
 }
 
@@ -335,6 +337,25 @@ function renderFiltros(){
   }).join("");
   document.getElementById("chipsPas").innerHTML = pasHtml;
 
+  const sel = document.getElementById("selMes");
+  let opts = "", anoAtual = "";
+  FULL_LIST.forEach(m => {
+    const ano = m.k.slice(0, 4);
+    if (ano !== anoAtual){
+      if (anoAtual) opts += "</optgroup>";
+      opts += `<optgroup label="${ano}">`;
+      anoAtual = ano;
+    }
+    opts += `<option value="${m.k}">${m.label}</option>`;
+  });
+  if (anoAtual) opts += "</optgroup>";
+  sel.innerHTML = `<option value="">Todos os meses</option>` + opts;
+  sel.value = FILTRO.startsWith("mes-") ? FILTRO.slice(4) : "";
+  sel.addEventListener("change", () => {
+    if (sel.value) setFiltro("mes-" + sel.value);
+    else if (FILTRO.startsWith("mes-")) setFiltro("todos");
+  });
+
   document.querySelectorAll("[data-filtro]").forEach(el => {
     el.addEventListener("click", () => setFiltro(el.dataset.filtro));
   });
@@ -348,6 +369,10 @@ function setFiltro(key){
   document.querySelectorAll("[data-filtro]").forEach(el => {
     el.classList.toggle("is-active", el.dataset.filtro === key);
   });
+  const sel = document.getElementById("selMes");
+  if (sel) sel.value = key.startsWith("mes-") ? key.slice(4) : "";
+  const btnAv = document.getElementById("btnAvancado");
+  if (btnAv) btnAv.classList.toggle("is-active", key.startsWith("pa-") || key.startsWith("mes-"));
   atualizaResumo();
   renderTudo();
 }
@@ -616,6 +641,12 @@ async function main(){
   initAbas();
   initTema();
   document.getElementById("limparFiltro").addEventListener("click", () => setFiltro("todos"));
+  document.getElementById("btnAvancado").addEventListener("click", () => {
+    const painel = document.getElementById("painelAvancado");
+    const vaiAbrir = painel.hidden;
+    painel.hidden = !vaiAbrir;
+    document.getElementById("btnAvancado").setAttribute("aria-expanded", vaiAbrir ? "true" : "false");
+  });
 
   let dados;
   try {
