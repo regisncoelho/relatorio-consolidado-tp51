@@ -200,3 +200,22 @@ svg text{font-family:inherit}
 
 /* seleção no heatmap */
 .heat .c.is-sel{outline:2px solid var(--ambar);outline-offset:1px;font-weight:800}
+
+/* ---------------------------------------------------------------- operação */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+@media(max-width:920px){.grid3{grid-template-columns:1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted);margin-bottom:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px}
+.stack-row{display:grid;grid-template-columns:minmax(140px,40%) 1fr auto;gap:12px;align-items:center;font-size:13px}
+.stack-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.stack-wrap{display:block;background:var(--line-2);border-radius:999px;height:12px;overflow:hidden}
+.stack-track{display:flex;height:100%;border-radius:999px;overflow:hidden;min-width:2px}
+.stack-track span{display:block;height:100%}
+.stack-num{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;white-space:nowrap}
+.mini-list{display:flex;flex-direction:column;gap:8px}
+.mini-row{display:grid;grid-template-columns:minmax(110px,45%) 1fr auto;gap:10px;align-items:center;font-size:12.5px}
+.mini-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.mini-bar{display:block;background:var(--line-2);border-radius:999px;height:9px;overflow:hidden}
+.mini-bar span{display:block;height:100%;border-radius:999px}
+.mini-val{font-variant-numeric:tabular-nums;color:var(--muted);font-size:11.5px;white-space:nowrap}

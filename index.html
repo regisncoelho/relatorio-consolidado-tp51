@@ -25,6 +25,7 @@
   <div class="wrap tabs" role="tablist">
     <button class="tab is-active" role="tab" id="t-visao" data-tab="visao" aria-selected="true" aria-controls="p-visao">Visão geral</button>
     <button class="tab" role="tab" id="t-atividades" data-tab="atividades" aria-selected="false" aria-controls="p-atividades" tabindex="-1">Atividades</button>
+    <button class="tab" role="tab" id="t-operacao" data-tab="operacao" aria-selected="false" aria-controls="p-operacao" tabindex="-1">Operação</button>
     <button class="tab" role="tab" id="t-fornecedores" data-tab="fornecedores" aria-selected="false" aria-controls="p-fornecedores" tabindex="-1">Fornecedores</button>
     <button class="tab" role="tab" id="t-tendencias" data-tab="tendencias" aria-selected="false" aria-controls="p-tendencias" tabindex="-1">Tendências</button>
     <button class="tab" role="tab" id="t-detalhe" data-tab="detalhe" aria-selected="false" aria-controls="p-detalhe" tabindex="-1">Detalhamento</button>
@@ -106,6 +107,51 @@
       </div>
     </div>
     <div class="callout" id="calloutAtiv"></div>
+  </section>
+
+  <!-- ============================================================ OPERAÇÃO -->
+  <section class="panel" id="p-operacao" role="tabpanel" aria-labelledby="t-operacao" hidden>
+    <div class="kpis" id="opKpis"></div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>O que foi adquirido</h2>
+        <p class="cap">Serviços, compras e pessoal — participação no gasto do período</p>
+        <div id="opDonutNat"></div>
+      </div>
+      <div class="card">
+        <h2>Natureza do gasto por atividade</h2>
+        <p class="cap">Cada barra mostra a divisão entre pessoal, serviços, compras e tributos</p>
+        <div id="opAtivNat"></div>
+      </div>
+    </div>
+
+    <div class="grid3" id="opAquisicoes"></div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Custo de operação por ano</h2>
+        <p class="cap">Gasto operacional financiado pelo TP</p>
+        <div id="opAno"></div>
+      </div>
+      <div class="card">
+        <h2>Custo de operação mês a mês</h2>
+        <p class="cap">Média mensal no período</p>
+        <div id="opMes"></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Onde está o custo de operação</h2>
+        <p class="cap">Atividades que compõem o custo de manter o PERD</p>
+        <div id="opAtiv"></div>
+      </div>
+      <div class="card">
+        <h2>Como este custo foi calculado</h2>
+        <div class="callout tight" id="opDef"></div>
+      </div>
+    </div>
   </section>
 
   <!-- ============================================================ FORNECEDORES -->

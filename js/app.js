@@ -27,6 +27,12 @@ const CORES_SEG = {
   "Executora — administração (área meio)":"#e0a33e",
   "Não classificado (revisão)":"#de6a3a"
 };
+const CORES_NAT = {
+  "Pessoal":"#1f3864",
+  "Serviços":"#2f6f8f",
+  "Compras":"#e0a33e",
+  "Tributos e encargos":"#94a3b8"
+};
 const EXCLUIR_ATIV = new Set(["Pessoal (folha e encargos)","Executora — administração (área meio)",
                               "Área Meio (administração)","Não informada","Demais atividades"]);
 
@@ -151,9 +157,66 @@ function barrasAnos(ytd, destaque){
   }).join("") + "</div>";
 }
 
+/* ---------------------------------------------------------------- operação */
+function legendNat(){
+  return '<div class="legend">' + Object.entries(CORES_NAT).map(([n,c]) =>
+    `<span><i style="background:${c}"></i>${esc(n)}</span>`).join("") + "</div>";
+}
+
+function stackBars(rows){
+  if (!rows.length) return '<div class="bar-row">Sem dados</div>';
+  const max = Math.max(...rows.map(r => r.total), 1);
+  const partes = [["pessoal","Pessoal"],["servicos","Serviços"],["compras","Compras"],["tributos","Tributos e encargos"]];
+  return '<div class="bars">' + rows.map(r => {
+    const segs = partes.filter(([k]) => r[k] > 0).map(([k,n]) => {
+      const p = r.total ? r[k] / r.total * 100 : 0;
+      return `<span style="width:${p.toFixed(1)}%;background:${CORES_NAT[n]}"
+        data-tip="${esc(n)}\n${brl2(r[k])} (${pct(r[k]/r.total)})"></span>`;
+    }).join("");
+    const w = r.total / max * 100;
+    return `<div class="stack-row">
+      <span class="stack-name" data-tip="${esc(r.n)}\nTotal: ${brl2(r.total)}">${esc(r.n)}</span>
+      <span class="stack-wrap"><span class="stack-track" style="width:${w.toFixed(1)}%">${segs}</span></span>
+      <span class="stack-num">${brl(r.total)}</span>
+    </div>`;
+  }).join("") + "</div>";
+}
+
+function miniList(items, cor){
+  if (!items.length) return '<p class="nota">Sem dados no período.</p>';
+  const max = Math.max(...items.map(i => i.v), 1);
+  return '<div class="mini-list">' + items.map(i =>
+    `<div class="mini-row" data-tip="${esc(i.n)}\n${brl2(i.v)}\n${fmtNum.format(i.n_lanc)} lançamentos">
+      <span class="mini-name">${esc(i.n)}</span>
+      <span class="mini-bar"><span style="width:${(i.v/max*100).toFixed(1)}%;background:${cor}"></span></span>
+      <span class="mini-val">${brl(i.v)}</span>
+    </div>`).join("") + "</div>";
+}
+
+function miniBarsMeses(rows){
+  if (!rows.length) return "";
+  const W=900, H=210, P={t:14, r:10, b:34, l:64};
+  const max = Math.max(...rows.map(r => r.v), 1), topo = max*1.1;
+  const iw = W-P.l-P.r, ih = H-P.t-P.b, bw = iw / rows.length;
+  const y = v => P.t + ih - (v/topo)*ih;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Custo de operação mês a mês">`;
+  [0, topo/2, topo].forEach((t,i) => {
+    s += `<line x1="${P.l}" x2="${W-P.r}" y1="${y(t)}" y2="${y(t)}" style="stroke:var(--line-2)"/>`;
+    s += `<text x="${P.l-8}" y="${y(t)+4}" text-anchor="end" font-size="10.5" style="fill:var(--muted)">${i===0?"0":compact(t)}</text>`;
+  });
+  const step = Math.max(1, Math.ceil(rows.length/9));
+  rows.forEach((r,i) => {
+    const x = P.l + i*bw + bw*0.18, w = bw*0.64;
+    s += `<rect x="${x}" y="${y(r.v)}" width="${w}" height="${Math.max(0, P.t+ih-y(r.v))}" rx="2"
+      fill="#2f9e8f" data-tip="${r.label}\n${brl2(r.v)}"><title>${r.label}: ${brl2(r.v)}</title></rect>`;
+    if (i % step === 0 || i === rows.length-1)
+      s += `<text x="${P.l+i*bw+bw/2}" y="${H-14}" text-anchor="middle" font-size="10" style="fill:var(--muted)">${r.label}</text>`;
+  });
+  return s + "</svg>";
+}
+
 /* ---------------------------------------------------------------- heatmap */
-function heat(meses, sel){
-  const anos = [...new Set(meses.map(m => m.k.slice(0,4)))].sort();
+function heat(meses, sel){  const anos = [...new Set(meses.map(m => m.k.slice(0,4)))].sort();
   const mp = new Map(meses.map(m => [m.k, m]));
   const max = Math.max(...meses.map(m => m.desp), 1);
   let s = '<div class="h"></div>';
@@ -369,6 +432,45 @@ function renderAtividades(){
      de estrutura pagos à executora (fora a folha).</span>`;
 }
 
+/* ---------------------------------------------------------------- render: operação */
+function renderOperacao(){
+  const s = SLICE, o = s.opex;
+  const kpis = [
+    ["Custo de operação (OPEX)", brl2(o.total), pct(o.total/s.totalDespesas)+" do gasto do período"],
+    ["Média mensal de operação", brl2(o.media_mensal), `${o.por_mes.filter(m=>m.v>0).length} meses com gasto`],
+    ["Operação direta", brl2(o.direto), "sem pessoal e sem administração"],
+    ["Não apropriado (fora do OPEX)", brl2(o.nao_informada), pct(o.nao_informada/s.totalDespesas)+" do gasto do período"],
+  ];
+  document.getElementById("opKpis").innerHTML = kpis.map(([l,v,h]) =>
+    `<div class="kpi"><div class="lbl">${l}</div><div class="val">${v}</div><div class="hint">${h}</div></div>`).join("");
+
+  document.getElementById("opDonutNat").innerHTML = donut(s.naturezas, {cores:CORES_NAT, rotulo:"gasto total"});
+  document.getElementById("opAtivNat").innerHTML = legendNat() + stackBars(s.ativ_natureza);
+
+  document.getElementById("opAquisicoes").innerHTML =
+    `<div class="card"><h2>Serviços contratados</h2><p class="cap">Top 8 tipos de serviço</p>${miniList(s.aquisicoes.servicos, CORES_NAT["Serviços"])}</div>` +
+    `<div class="card"><h2>Compras realizadas</h2><p class="cap">Top 8 tipos de compra</p>${miniList(s.aquisicoes.compras, CORES_NAT.Compras)}</div>` +
+    `<div class="card"><h2>Pessoal</h2><p class="cap">Salários, encargos e benefícios</p>${miniList(s.aquisicoes.pessoal, CORES_NAT.Pessoal)}</div>`;
+
+  document.getElementById("opAno").innerHTML =
+    barras(o.por_ano.map(x => ({n:String(x.ano), v:x.v, n_lanc:0})), o.total,
+           {cor:()=>"#1f3864", rotuloN:"no ano"});
+  document.getElementById("opMes").innerHTML = miniBarsMeses(o.por_mes);
+  document.getElementById("opAtiv").innerHTML =
+    barras(o.por_atividade, o.total, {cor:(i,p) =>
+      p.n === "Pessoal (folha e encargos)" ? "#1f3864" : PALETA[(i+2) % PALETA.length]});
+
+  const pctNaoInf = s.totalDespesas ? o.nao_informada / s.totalDespesas * 100 : 0;
+  document.getElementById("opDef").innerHTML =
+    `<b>Custo de operação do PERD</b> = gastos recorrentes de manter o parque funcionando, financiados pelo TP:
+     pessoal, administração (área meio e executora), coordenação, manutenção de edificações e aceiros,
+     materiais e insumos, veículos (manutenção e combustível), internet, viveiro e Programa Monitora.<br><br>
+     <b>Fora do cálculo:</b> regularização fundiária, projetos de arquitetura/engenharia, torre, plano de manejo,
+     herbário, uso público, comunicação, videovigilância e bens permanentes (CAPEX) — são investimentos ou estruturação, não operação.<br><br>
+     <b>Não apropriado:</b> ${brl(o.nao_informada)} (${pctNaoInf.toFixed(1).replace(".",",")}% do gasto) não têm atividade informada e ficam fora do OPEX.
+     Se incluídos, o custo de operação subiria para ${brl(o.total + o.nao_informada)}.`;
+}
+
 /* ---------------------------------------------------------------- render: fornecedores */
 function renderFornecedores(){
   const s = SLICE;
@@ -446,6 +548,7 @@ function renderTudo(){
   }
   renderVisao();
   renderAtividades();
+  renderOperacao();
   renderFornecedores();
   renderTendencias();
   renderDetalhe();
